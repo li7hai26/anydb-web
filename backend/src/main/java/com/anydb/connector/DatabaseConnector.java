@@ -53,6 +53,11 @@ public interface DatabaseConnector {
     DatabaseType getSupportedType();
     
     /**
+     * 创建连接池 (按需创建)
+     */
+    Object createConnectionPool(DatabaseConfig config);
+    
+    /**
      * 关闭连接
      */
     void close();

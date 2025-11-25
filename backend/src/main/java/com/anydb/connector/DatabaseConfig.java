@@ -1,6 +1,6 @@
 package com.anydb.connector;
 
-import lombok.Data;
+import java.util.Map;
 
 /**
  * 数据库连接配置
@@ -8,7 +8,6 @@ import lombok.Data;
  * @author AnyDB Team
  * @version 1.0.0
  */
-@Data
 public class DatabaseConfig {
     
     private Long id;
@@ -49,9 +48,129 @@ public class DatabaseConfig {
     private String password;
     
     /**
-     * 其他参数
+     * 参数配置
      */
-    private String parameters;
+    private Map<String, Object> parameters;
+    
+    /**
+     * 连接选项
+     */
+    private Map<String, String> options;
+    
+    // 构造函数
+    public DatabaseConfig() {
+    }
+    
+    public DatabaseConfig(Long id, DatabaseType type, String host, Integer port) {
+        this.id = id;
+        this.type = type;
+        this.host = host;
+        this.port = port;
+    }
+    
+    // Getter和Setter方法
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public DatabaseType getType() {
+        return type;
+    }
+    
+    public void setType(DatabaseType type) {
+        this.type = type;
+    }
+    
+    public String getHost() {
+        return host;
+    }
+    
+    public void setHost(String host) {
+        this.host = host;
+    }
+    
+    public Integer getPort() {
+        return port;
+    }
+    
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+    
+    public String getDatabase() {
+        return database;
+    }
+    
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    
+    public String getPassword() {
+        return password;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+    
+    public void setParameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+    }
+    
+    public Map<String, String> getOptions() {
+        return options;
+    }
+    
+    public void setOptions(Map<String, String> options) {
+        this.options = options;
+    }
+    
+    // 添加parameters方法
+    public Object getParameter(String key) {
+        return parameters != null ? parameters.get(key) : null;
+    }
+    
+    public void setParameter(String key, Object value) {
+        if (parameters == null) {
+            parameters = new java.util.HashMap<>();
+        }
+        parameters.put(key, value);
+    }
+    
+    public String getOption(String key) {
+        return options != null ? options.get(key) : null;
+    }
+    
+    public void setOption(String key, String value) {
+        if (options == null) {
+            options = new java.util.HashMap<>();
+        }
+        options.put(key, value);
+    }
     
     /**
      * 连接超时时间（毫秒）

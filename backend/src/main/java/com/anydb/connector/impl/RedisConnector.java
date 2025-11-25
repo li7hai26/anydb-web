@@ -3,6 +3,7 @@ package com.anydb.connector.impl;
 import com.anydb.connector.DatabaseConfig;
 import com.anydb.connector.DatabaseConnector;
 import com.anydb.connector.DatabaseType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -20,6 +21,7 @@ import java.util.*;
  * @version 1.0.0
  */
 @Component
+@Slf4j
 public class RedisConnector implements DatabaseConnector {
     
     private JedisPool jedisPool;
@@ -540,5 +542,29 @@ public class RedisConnector implements DatabaseConnector {
         result.setTotal(rows.size());
         
         return result;
+    }
+    
+    @Override
+    public Object createConnectionPool(DatabaseConfig config) {
+        // 创建Redis连接池
+        log.info("为Redis创建连接池，配置: {}:{}", config.getHost(), config.getPort());
+        
+        // 测试连接是否可用
+        if (!testConnection(config)) {
+            throw new RuntimeException("创建Redis连接池失败：连接测试失败");
+        }
+        
+        // 创建JedisPool实例
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(8); // 最大连接数
+        poolConfig.setMaxIdle(8); // 最大空闲连接数
+        poolConfig.setMinIdle(0); // 最小空闲连接数
+        poolConfig.setMaxWaitMillis(-1); // 最大等待时间
+        
+        JedisPool pool = new JedisPool(poolConfig, config.getHost(), config.getPort(), 
+                                     config.getPassword() != null ? 2000 : 0,
+                                     config.getPassword());
+        
+        return pool;
     }
 }

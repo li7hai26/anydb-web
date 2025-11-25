@@ -3,11 +3,13 @@ package com.anydb.connector.impl;
 import com.anydb.connector.DatabaseConfig;
 import com.anydb.connector.DatabaseConnector;
 import com.anydb.connector.DatabaseType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * PostgreSQL数据库连接器实现
@@ -16,6 +18,7 @@ import java.util.List;
  * @version 1.0.0
  */
 @Component
+@Slf4j
 public class PostgreSQLConnector implements DatabaseConnector {
     
     @Override
@@ -339,6 +342,58 @@ public class PostgreSQLConnector implements DatabaseConnector {
                     // 忽略关闭异常
                 }
             }
+        }
+    }
+    
+    @Override
+    public Object createConnectionPool(DatabaseConfig config) {
+        // 创建PostgreSQL连接池
+        // 这里返回一个简单的连接池包装类
+        log.info("为PostgreSQL创建连接池，配置: {}:{}", config.getHost(), config.getPort());
+        
+        // 测试连接是否可用
+        if (testConnection(config)) {
+            return new PostgreSQLConnectionPool(config);
+        } else {
+            throw new RuntimeException("创建PostgreSQL连接池失败：连接测试失败");
+        }
+    }
+    
+    /**
+     * PostgreSQL连接池实现
+     */
+    private static class PostgreSQLConnectionPool {
+        private final DatabaseConfig config;
+        private volatile boolean active = true;
+        
+        public PostgreSQLConnectionPool(DatabaseConfig config) {
+            this.config = config;
+        }
+        
+        public Connection getConnection() throws SQLException {
+            if (!active) {
+                throw new SQLException("连接池已关闭");
+            }
+            return getDirectConnection();
+        }
+        
+        public void close() {
+            active = false;
+        }
+        
+        public boolean isActive() {
+            return active;
+        }
+        
+        private Connection getDirectConnection() throws SQLException {
+            String url = "jdbc:postgresql://" + config.getHost() + ":" + config.getPort() + "/" + config.getDatabase();
+            Properties props = new Properties();
+            props.setProperty("user", config.getUsername());
+            props.setProperty("password", config.getPassword());
+            props.setProperty("useSSL", "false");
+            props.setProperty("characterEncoding", "UTF-8");
+            
+            return DriverManager.getConnection(url, props);
         }
     }
 }

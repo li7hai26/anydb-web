@@ -3,7 +3,7 @@ package com.anydb.connector.impl;
 import com.anydb.connector.DatabaseConfig;
 import com.anydb.connector.DatabaseConnector;
 import com.anydb.connector.DatabaseType;
-// import com.anydb.connector.PageResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
@@ -19,6 +19,7 @@ import java.util.Properties;
  * @version 1.0.0
  */
 @Component
+@Slf4j
 public class MySQLConnector implements DatabaseConnector {
     
     @Override
@@ -303,6 +304,20 @@ public class MySQLConnector implements DatabaseConnector {
     }
     
     @Override
+    public Object createConnectionPool(DatabaseConfig config) {
+        // 创建MySQL连接池
+        // 这里返回一个简单的连接池包装类，实际项目中可以使用HikariCP、Druid等
+        log.info("为MySQL创建连接池，配置: {}:{}", config.getHost(), config.getPort());
+        
+        // 测试连接是否可用
+        if (testConnection(config)) {
+            return new MySQLConnectionPool(config);
+        } else {
+            throw new RuntimeException("创建MySQL连接池失败：连接测试失败");
+        }
+    }
+    
+    @Override
     public void close() {
         // 清理资源
     }
@@ -388,6 +403,46 @@ public class MySQLConnector implements DatabaseConnector {
             
         } finally {
             closeResources(rs, stmt);
+        }
+    }
+    
+    /**
+     * MySQL连接池实现
+     */
+    private static class MySQLConnectionPool {
+        private final DatabaseConfig config;
+        private volatile boolean active = true;
+        
+        public MySQLConnectionPool(DatabaseConfig config) {
+            this.config = config;
+        }
+        
+        public Connection getConnection() throws SQLException {
+            if (!active) {
+                throw new SQLException("连接池已关闭");
+            }
+            return getDirectConnection();
+        }
+        
+        public void close() {
+            active = false;
+        }
+        
+        public boolean isActive() {
+            return active;
+        }
+        
+        private Connection getDirectConnection() throws SQLException {
+            String url = config.buildUrl();
+            Properties props = new Properties();
+            props.setProperty("user", config.getUsername());
+            props.setProperty("password", config.getPassword());
+            props.setProperty("useSSL", "false");
+            props.setProperty("serverTimezone", "Asia/Shanghai");
+            props.setProperty("useUnicode", "true");
+            props.setProperty("characterEncoding", "UTF-8");
+            
+            return DriverManager.getConnection(url, props);
         }
     }
 }

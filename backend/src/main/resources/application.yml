@@ -51,13 +51,16 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
-  # Redis配置
+  # Redis配置 (按需连接，不在启动时自动连接)
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD:}
     database: ${REDIS_DB:0}
     timeout: 2000ms
+    # 禁用自动连接
+    auto-connect: false
+    # 连接池配置 (按需使用)
     lettuce:
       pool:
         max-active: 8
