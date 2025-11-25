@@ -42,8 +42,15 @@ public class RedisConnector implements DatabaseConnector {
         long startTime = System.currentTimeMillis();
         
         try (Jedis jedis = getJedis(config)) {
+            if (jedis == null) {
+                throw new RuntimeException("无法获取Redis连接");
+            }
+            
             // 解析简单的Redis命令
             String[] parts = sql.trim().split("\\s+");
+            if (parts.length == 0) {
+                throw new IllegalArgumentException("SQL语句不能为空");
+            }
             String command = parts[0].toUpperCase();
             
             switch (command) {

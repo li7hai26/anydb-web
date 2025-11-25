@@ -141,13 +141,18 @@ public class PostgreSQLConnector implements DatabaseConnector {
         
         try {
             conn = getConnection(config);
+            if (conn == null) {
+                throw new RuntimeException("无法获取PostgreSQL连接");
+            }
             stmt = conn.createStatement();
             
             StringBuilder sql = new StringBuilder();
             sql.append("SELECT schemaname, tablename, tableowner, hasindexes, hasrules, hastriggers ");
             sql.append("FROM pg_tables ");
             if (database != null && !database.isEmpty()) {
-                sql.append("WHERE schemaname = '").append(database).append("' ");
+                // 防止SQL注入
+                String safeDatabase = database.replace("'", "''");
+                sql.append("WHERE schemaname = '").append(safeDatabase).append("' ");
             }
             sql.append("ORDER BY schemaname, tablename");
             

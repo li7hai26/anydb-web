@@ -143,11 +143,18 @@ public class MySQLConnector implements DatabaseConnector {
         
         try {
             conn = getConnection(config);
+            if (conn == null) {
+                throw new RuntimeException("无法获取MySQL连接");
+            }
             stmt = conn.createStatement();
             
             StringBuilder sql = new StringBuilder("SHOW TABLE STATUS");
             if (database != null && !database.isEmpty()) {
-                sql.append(" FROM ").append(database);
+                // 防止SQL注入，只允许安全的数据库名
+                String safeDatabase = database.replaceAll("[^a-zA-Z0-9_]", "");
+                if (!safeDatabase.isEmpty()) {
+                    sql.append(" FROM ").append(safeDatabase);
+                }
             }
             
             rs = stmt.executeQuery(sql.toString());
