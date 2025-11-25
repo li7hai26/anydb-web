@@ -7,6 +7,7 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
+  SettingOutlined,
 } from '@ant-design/icons'
 
 const Home: React.FC = () => {

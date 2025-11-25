@@ -43,7 +43,7 @@ export const useAsync = (asyncFunction: () => Promise<any>) => {
     setError(null)
     
     try {
-      const result = await asyncFunction(...args)
+      const result = await (asyncFunction as any)(...args)
       setData(result)
       return result
     } catch (err) {

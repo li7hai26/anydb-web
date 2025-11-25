@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.resps.Tuple;
 
 import java.util.*;
 
@@ -100,12 +101,12 @@ public class RedisConnector implements DatabaseConnector {
                     break;
                     
                 case "DEL":
-                    affectedRows = jedis.del(parts[1]);
+                    affectedRows = (int) jedis.del(parts[1]);
                     break;
                     
                 case "HSET":
                     if (parts.length >= 4) {
-                        affectedRows = jedis.hset(parts[1], parts[2], parts[3]);
+                        affectedRows = (int) jedis.hset(parts[1], parts[2], parts[3]);
                     }
                     break;
                     
@@ -181,7 +182,7 @@ public class RedisConnector implements DatabaseConnector {
                 long ttl = jedis.ttl(key);
                 
                 table.setRowCount(1); // Redis每个key只有一条记录
-                table.setCreateTime(0); // Redis不直接提供key创建时间
+                table.setCreateTime(0L); // Redis不直接提供key创建时间
                 
                 tables.add(table);
             }
@@ -210,37 +211,79 @@ public class RedisConnector implements DatabaseConnector {
             switch (type) {
                 case "string":
                     String value = jedis.get(tableName);
-                    columns.add(new ColumnInfo("value", "string", "String value", true, false, null, null, null, value));
+                    ColumnInfo col = new ColumnInfo();
+                    col.setName("value");
+                    col.setType("string");
+                    col.setComment("String value");
+                    col.setNullable(true);
+                    col.setPrimaryKey(false);
+                    col.setDefaultValue(value);
+                    columns.add(col);
                     break;
                     
                 case "hash":
                     Map<String, String> hashData = jedis.hgetAll(tableName);
                     for (Map.Entry<String, String> entry : hashData.entrySet()) {
-                        columns.add(new ColumnInfo(entry.getKey(), "string", "Hash field", true, false, null, null, null, entry.getValue()));
+                        ColumnInfo hashCol = new ColumnInfo();
+                    hashCol.setName(entry.getKey());
+                    hashCol.setType("string");
+                    hashCol.setComment("Hash field");
+                    hashCol.setNullable(true);
+                    hashCol.setPrimaryKey(false);
+                    hashCol.setDefaultValue(entry.getValue());
+                    columns.add(hashCol);
                     }
                     break;
                     
                 case "list":
                     long listSize = jedis.llen(tableName);
-                    columns.add(new ColumnInfo("size", "integer", "List size", false, false, null, null, null, String.valueOf(listSize)));
+                    ColumnInfo sizeCol = new ColumnInfo();
+                    sizeCol.setName("size");
+                    sizeCol.setType("integer");
+                    sizeCol.setComment("List size");
+                    sizeCol.setNullable(false);
+                    sizeCol.setPrimaryKey(false);
+                    sizeCol.setDefaultValue(String.valueOf(listSize));
+                    columns.add(sizeCol);
                     
                     List<String> listValues = jedis.lrange(tableName, 0, 9);
                     for (int i = 0; i < listValues.size(); i++) {
-                        columns.add(new ColumnInfo("element_" + i, "string", "List element", true, false, null, null, null, listValues.get(i)));
+                        ColumnInfo listCol = new ColumnInfo();
+                        listCol.setName("element_" + i);
+                        listCol.setType("string");
+                        listCol.setComment("List element");
+                        listCol.setNullable(true);
+                        listCol.setPrimaryKey(false);
+                        listCol.setDefaultValue(listValues.get(i));
+                        columns.add(listCol);
                     }
                     break;
                     
                 case "set":
                     Set<String> setMembers = jedis.smembers(tableName);
                     for (String member : setMembers) {
-                        columns.add(new ColumnInfo("member", "string", "Set member", true, false, null, null, null, member));
+                        ColumnInfo setCol = new ColumnInfo();
+                        setCol.setName("member");
+                        setCol.setType("string");
+                        setCol.setComment("Set member");
+                        setCol.setNullable(true);
+                        setCol.setPrimaryKey(false);
+                        setCol.setDefaultValue(member);
+                        columns.add(setCol);
                     }
                     break;
                     
                 case "zset":
-                    Map<String, Double> zsetData = jedis.zrangeWithScores(tableName, 0, -1);
-                    for (Map.Entry<String, Double> entry : zsetData.entrySet()) {
-                        columns.add(new ColumnInfo(entry.getKey(), "double", "Zset score", true, false, null, null, null, entry.getValue().toString()));
+                    List<Tuple> tuples = jedis.zrangeWithScores(tableName, 0, -1);
+                    for (Tuple tuple : tuples) {
+                        ColumnInfo zsetCol = new ColumnInfo();
+                        zsetCol.setName(tuple.getElement());
+                        zsetCol.setType("double");
+                        zsetCol.setComment("Zset score");
+                        zsetCol.setNullable(true);
+                        zsetCol.setPrimaryKey(false);
+                        zsetCol.setDefaultValue(String.valueOf(tuple.getScore()));
+                        columns.add(zsetCol);
                     }
                     break;
             }
@@ -288,7 +331,7 @@ public class RedisConnector implements DatabaseConnector {
                     break;
             }
             
-            List<Object> row = Arrays.asList(tableName, type, value, ttl);
+            List<Object> row = Arrays.asList(tableName, type, value, Long.valueOf(ttl));
             rows.add(row);
             
             QueryResult result = new QueryResult();
@@ -380,7 +423,7 @@ public class RedisConnector implements DatabaseConnector {
         
         List<String> columns = Arrays.asList("key", "value", "type", "ttl");
         List<List<Object>> rows = Arrays.asList(
-            Arrays.asList(key, value, jedis.type(key), jedis.ttl(key))
+            Arrays.asList(key, value, jedis.type(key), Long.valueOf(jedis.ttl(key)))
         );
         
         QueryResult result = new QueryResult();
@@ -476,19 +519,25 @@ public class RedisConnector implements DatabaseConnector {
      * 执行INFO命令
      */
     private QueryResult executeInfo(Jedis jedis) {
-        Properties info = jedis.info();
+        String infoString = jedis.info();
         
         List<String> columns = Arrays.asList("key", "value");
         List<List<Object>> rows = new ArrayList<>();
         
-        for (Map.Entry<Object, Object> entry : info.entrySet()) {
-            rows.add(Arrays.asList(entry.getKey().toString(), entry.getValue().toString()));
+        String[] lines = infoString.split("\n");
+        for (String line : lines) {
+            if (line.contains(":")) {
+                String[] parts = line.split(":", 2);
+                if (parts.length == 2) {
+                    rows.add(Arrays.asList(parts[0], parts[1]));
+                }
+            }
         }
         
         QueryResult result = new QueryResult();
         result.setColumns(columns);
         result.setRows(rows);
-        result.setTotal(info.size());
+        result.setTotal(rows.size());
         
         return result;
     }

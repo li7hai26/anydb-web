@@ -172,12 +172,12 @@ const Monitor: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => {
-        const statusConfig = {
+        const statusConfig: Record<string, { color: string; text: string }> = {
           running: { color: 'processing', text: '执行中' },
           completed: { color: 'success', text: '已完成' },
           failed: { color: 'error', text: '失败' },
         }
-        const config = statusConfig[status]
+        const config = statusConfig[status as string] || statusConfig.running
         return <Tag color={config.color}>{config.text}</Tag>
       },
     },
