@@ -21,7 +21,6 @@
         <druid.version>1.2.20</druid.version>
         <mysql.version>8.0.33</mysql.version>
         <postgresql.version>42.7.1</postgresql.version>
-        <redis.version>4.2.3</redis.version>
         <elasticsearch.version>8.8.2</elasticsearch.version>
         <fastjson2.version>2.0.40</fastjson2.version>
     </properties>
@@ -41,11 +40,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         
         <dependency>
@@ -134,7 +128,6 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>4.3.1</version>
         </dependency>
 
         <!-- Elasticsearch - 暂时禁用，需要手动安装

@@ -27,7 +27,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 // 允许API健康检查等接口无需认证
-                .requestMatchers("/api/health/**", "/api/databases/types").permitAll()
+                .requestMatchers("/api/health/**",
+                        "/api/databases/types",
+                        "/api/druid/**"
+                ).permitAll()
                 // 其他所有请求需要认证
                 .anyRequest().authenticated()
             )
