@@ -39,14 +39,14 @@ public class DatabaseController {
      */
     @GetMapping("/types")
     public ResponseEntity<List<DatabaseType>> getSupportedTypes() {
-        try {
-            List<DatabaseType> types = databaseService.getSupportedTypes();
-            log.info("获取支持的数据库类型，数量: {}", types.size());
-            return ResponseEntity.ok(types);
-        } catch (Exception e) {
-            log.error("获取支持的数据库类型失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<DatabaseType> types = databaseService.getSupportedTypes();
+        log.info("获取支持的数据库类型，数量: {}", types.size());
+        return ResponseEntity.ok(types);
+    }
+    
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("API is working!");
     }
     
     /**
