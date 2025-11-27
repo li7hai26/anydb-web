@@ -11,11 +11,11 @@ public class TestController {
     
     @GetMapping("/test")
     public String test() {
-        return "Test controller works!";
+        return "Test API working!";
     }
     
-    @GetMapping("/api/test")
+    @GetMapping("/api/test")  
     public String apiTest() {
-        return "API test controller works!";
+        return "API Test working!";
     }
 }

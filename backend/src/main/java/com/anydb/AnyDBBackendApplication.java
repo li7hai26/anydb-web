@@ -3,6 +3,7 @@ package com.anydb;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @MapperScan("com.anydb.mapper")
 @EnableAsync
 @EnableScheduling
+@ComponentScan(basePackages = {"com.anydb"})
 public class AnyDBBackendApplication {
 
     public static void main(String[] args) {
