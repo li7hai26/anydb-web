@@ -2,6 +2,7 @@ package com.anydb.connector.impl;
 
 import com.anydb.connector.DatabaseConfig;
 import com.anydb.connector.DatabaseConnector;
+import com.anydb.connector.DatabaseOperationException;
 import com.anydb.connector.DatabaseType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

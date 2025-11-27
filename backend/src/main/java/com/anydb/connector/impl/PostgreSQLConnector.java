@@ -407,9 +407,6 @@ public class PostgreSQLConnector implements DatabaseConnector {
         }
     }
     
-    @Override
-    
-    
     // ========== 验证和工具方法 ==========
     
     /**

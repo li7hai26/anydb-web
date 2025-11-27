@@ -1,5 +1,6 @@
 package com.anydb.connector.impl;
 
+import com.anydb.connector.*;
 import com.anydb.connector.DatabaseConfig;
 import com.anydb.connector.DatabaseConnector;
 import com.anydb.connector.DatabaseType;
@@ -33,6 +34,20 @@ public class RedisConnector implements DatabaseConnector {
     
     @Override
     public boolean testConnection(DatabaseConfig config) {
+        // 验证配置
+        if (config == null) {
+            throw new IllegalArgumentException("数据库配置不能为空");
+        }
+        if (config.getHost() == null || config.getHost().trim().isEmpty()) {
+            throw new IllegalArgumentException("数据库主机地址不能为空");
+        }
+        if (config.getPort() <= 0 || config.getPort() > 65535) {
+            throw new IllegalArgumentException("数据库端口无效: " + config.getPort());
+        }
+        if (config.getUsername() == null || config.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("数据库用户名不能为空");
+        }
+        
         try (Jedis jedis = getJedis(config)) {
             return jedis != null && jedis.ping().equals("PONG");
         } catch (Exception e) {
